@@ -5,63 +5,63 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-const EASY = 8
-const MEDIUM = 12
-const HARD = 20
+var complexities = map[string]int{
+	"-easy":   8,
+	"-medium": 12,
+	"-hard":   20,
+}
 
-func numberGenerationComplexity(length string) string {
 
-	var strSlice []string
-	switch length {
-	case "-easy":
-		for range EASY {
-			r, err := rand.Int(rand.Reader, big.NewInt(10))
-			if err != nil {
-				log.Println(err)
-			}
-			numStr := strconv.FormatInt(r.Int64(), 10)
-			strSlice = append(strSlice, numStr)
-		}
-		result := strings.Join(strSlice, "")
-		return result
 
-	case "-medium":
-		for range MEDIUM {
-			r, err := rand.Int(rand.Reader, big.NewInt(10))
-			if err != nil {
-				log.Println(err)
-			}
-			numStr := strconv.FormatInt(r.Int64(), 10)
-			strSlice = append(strSlice, numStr)
-		}
-		result := strings.Join(strSlice, "")
-		return result
-	case "-hard":
-		for range HARD {
-			r, err := rand.Int(rand.Reader, big.NewInt(10))
-			if err != nil {
-				log.Println(err)
-			}
-			numStr := strconv.FormatInt(r.Int64(), 10)
-			strSlice = append(strSlice, numStr)
-		}
-		result := strings.Join(strSlice, "")
-		return result
-	default:
-		return "invalid command"
+func numberGenerationComplexity(length string) (string, error) {
 
+	limit, exists := complexities[length]
+	if !exists {
+		return "", fmt.Errorf("invalid command")
 	}
+	var builder strings.Builder
+	builder.Grow(limit)
+	
+	maxBig := big.NewInt(10)
+
+	for range limit{
+		r, err := rand.Int(rand.Reader, maxBig)
+		if err != nil {
+			return "", fmt.Errorf("failed to generate random password: %w", err)
+		}
+		builder.WriteString(strconv.FormatInt(r.Int64(),10))
+		
+	}
+
+	return builder.String(), nil
 }
 func main() {
 
-	fmt.Println(numberGenerationComplexity("-easy"))
-	fmt.Println(numberGenerationComplexity("-medium"))
-	fmt.Println(numberGenerationComplexity("-hard"))
-	fmt.Println(len(numberGenerationComplexity("-easy")))
-	fmt.Println(len(numberGenerationComplexity("-medium")))
-	fmt.Println(len(numberGenerationComplexity("-hard")))
+	if len(os.Args) < 2 {
+		log.Fatalf("Usage: %s <complexity> (options: -easy, -medium, -hard)", filepath.Base(os.Args[0]))
+	}
+
+	head := filepath.Base(os.Args[0])
+	
+	if head != "passgen" && head != "main" {
+		log.Fatal("Invalid command")
+	}
+
+	lvl := os.Args[1]
+
+	password,err := numberGenerationComplexity(lvl)
+
+
+	if err != nil{
+		log.Printf("Error generating password for level %s: %v", lvl, err)
+		return}
+
+
+	fmt.Printf("Level %s: %s (length: %d)\n", lvl, password, len(password))
 }
