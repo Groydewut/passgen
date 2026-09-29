@@ -43,16 +43,10 @@ func numberGenerationComplexity(length string) (string, error) {
 }
 func main() {
 
-	if len(os.Args) < 2 {
+	if len(os.Args) != 2 {
 		log.Fatalf("Usage: %s <complexity> (options: -easy, -medium, -hard)", filepath.Base(os.Args[0]))
 	}
-
-	head := filepath.Base(os.Args[0])
 	
-	if head != "passgen" && head != "main" {
-		log.Fatal("Invalid command")
-	}
-
 	lvl := os.Args[1]
 
 	password,err := numberGenerationComplexity(lvl)
