@@ -1,0 +1,4 @@
+passgen
+*.pkg.tar.zst
+pkg/
+src/

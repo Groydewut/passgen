@@ -147,9 +147,8 @@ func main() {
 	password, err := generatePassword(lvl)
 
 	if err != nil {
-		log.Printf("Error generating password for level %s: %v", lvl, err)
-		return
+		log.Fatalf("Error generating password for level %s: %v", lvl, err)
 	}
 
-	fmt.Printf("Level %s: %s (length: %d)\n", lvl, password, len(password))
+	fmt.Println(password)
 }
