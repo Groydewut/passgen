@@ -10,10 +10,28 @@ import (
 	"strings"
 )
 
-var complexities = map[string]int{
-	"-easy":   8,
-	"-medium": 12,
-	"-hard":   20,
+type Complexity struct {
+	charset  string
+	limit    int
+	validate func(string) bool
+}
+
+var complexities = map[string]Complexity{
+	"-easy": {
+		charset:  charset_easy,
+		limit:    8,
+		validate: validateEasyPassword,
+	},
+	"-medium": {
+		charset:  charset_medium,
+		limit:    12,
+		validate: validateMediumPassword,
+	},
+	"-hard": {
+		charset:  charset_hard,
+		limit:    20,
+		validate: validateHardPassword,
+	},
 }
 
 const charset_hard = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$*_=+?"
@@ -23,22 +41,18 @@ const charset_medium = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123
 const charset_easy = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 func generatePassword(complexityKey string) (string, error) {
-	var charset string
-
-	limit, exists := complexities[complexityKey]
+	complexity, exists := complexities[complexityKey]
 	if !exists {
 		return "", fmt.Errorf("invalid command")
 	}
 
-	if complexityKey == "-easy" {
-		charset = charset_easy
-	} else if complexityKey == "-medium" {
-		charset = charset_medium
-	} else {
-		charset = charset_hard
-	}
+	charset := complexity.charset
+	limit := complexity.limit
 	maxBig := big.NewInt(int64(len(charset)))
-	for {
+
+	generationLimit := 1000
+
+	for range generationLimit {
 		var builder strings.Builder
 		builder.Grow(limit)
 
@@ -51,24 +65,12 @@ func generatePassword(complexityKey string) (string, error) {
 		}
 		password := builder.String()
 
-		if complexityKey == "-medium" {
-			if validateMediumPassword(password) {
-				return password, nil
-			}
-			continue
-		}
-		if complexityKey == "-hard" {
-			if validateHardPassword(password) {
-				return password, nil
-			}
-			continue
-		}
-		if validateEasyPassword(password) {
+		if complexity.validate(password) {
 			return password, nil
 		}
-
 	}
 
+	return "", fmt.Errorf("failed to generate password within %d attempts", generationLimit)
 }
 
 func validateEasyPassword(p string) bool {
